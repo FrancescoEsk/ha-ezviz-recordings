@@ -1,0 +1,3 @@
+download_today:
+  name: Download today's recordings
+  description: Download now every clip of today that is not saved yet (done automatically at the configured hours and at 23:50).

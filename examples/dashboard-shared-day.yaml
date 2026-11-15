@@ -1,0 +1,37 @@
+# One day bar for all cameras (handy on a wall tablet): the cards follow the day
+# chosen in the bar with the same `sync`, and the bar goes back to today after
+# `reset_after` seconds without touches.
+
+title: Recordings
+path: recordings
+icon: mdi:history
+type: sections
+max_columns: 3
+sections:
+  - type: grid
+    column_span: 3
+    cards:
+      - type: custom:ezviz-recordings-datebar
+        sync: cameras
+        reset_after: 300
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: ABC123456
+        title: Front door
+        sync: cameras
+        hide_bar: true
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: DEF234567
+        title: Back door
+        sync: cameras
+        hide_bar: true
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: GHI345678
+        title: Garage
+        sync: cameras
+        hide_bar: true

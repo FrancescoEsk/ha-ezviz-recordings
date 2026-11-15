@@ -1,0 +1,12 @@
+{
+  "domain": "ezviz_recordings",
+  "name": "EZVIZ Recordings",
+  "after_dependencies": ["ezviz_rtsp"],
+  "codeowners": ["@FrancescoEsk"],
+  "dependencies": ["http", "media_source", "ffmpeg", "frontend", "websocket_api"],
+  "documentation": "https://github.com/FrancescoEsk/ha-ezviz-recordings",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/FrancescoEsk/ha-ezviz-recordings/issues",
+  "requirements": [],
+  "version": "1.0.0"
+}

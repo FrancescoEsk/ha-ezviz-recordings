@@ -1,0 +1,30 @@
+# Simple "Recordings" view: one card per camera, each with its own day selector.
+# No other custom cards needed. Replace the serials with yours
+# (shown on the device page of the ezviz_rtsp integration, or in the EZVIZ app).
+#
+# Paste as a new view: Edit dashboard -> three dots -> Raw configuration editor.
+
+title: Recordings
+path: recordings
+icon: mdi:history
+type: sections
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: ABC123456
+        title: Front door
+        max_height: 480px
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: DEF234567
+        title: Back door
+        max_height: 480px
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: GHI345678
+        title: Garage
+        max_height: 480px

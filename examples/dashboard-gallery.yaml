@@ -1,0 +1,61 @@
+# Gallery look: clips as tiles with a big thumbnail, rounded "pill" buttons.
+# Needs card-mod (HACS / Marketplace -> Frontend -> card-mod).
+# The style is a YAML anchor, so it is written once and reused by every card.
+
+title: Recordings
+path: recordings
+icon: mdi:history
+type: sections
+max_columns: 3
+sections:
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: ABC123456
+        title: Front door
+        max_height: 58vh
+        card_mod: &gallery
+          style: |
+            ha-card { border: none; box-shadow: none; border-radius: 22px;
+                      background: rgba(var(--rgb-primary-text-color), 0.05); padding-bottom: 6px; }
+            .head { padding: 18px 20px 6px; }
+            .title { font-size: 1.35em; font-weight: 700; letter-spacing: -0.01em; }
+            .count { background: rgba(var(--rgb-primary-text-color), 0.08); border-radius: 999px;
+                     padding: 3px 10px; font-size: .8em; }
+            .bar { padding: 6px 16px 12px; gap: 8px; }
+            .daylabel { text-align: left; font-size: .95em; color: var(--secondary-text-color); }
+            button, input[type=date] { border-radius: 999px; background: rgba(var(--rgb-primary-text-color), 0.08); }
+            button.icon { width: 38px; height: 38px; padding: 0; }
+            button.today { padding: 8px 16px; font-weight: 600; }
+            .player { margin: 0 14px 12px; border-radius: 16px; overflow: hidden; }
+            .list { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                    gap: 10px; padding: 4px 14px 14px; align-content: start; }
+            .clip { display: grid; grid-template-columns: auto 1fr auto;
+                    grid-template-areas: 'lead lead lead' 't d c'; align-items: center;
+                    column-gap: 6px; row-gap: 0; padding: 0 0 8px; border-radius: 14px; overflow: hidden;
+                    background: rgba(var(--rgb-primary-text-color), 0.06);
+                    transition: transform .12s ease, background .12s ease; }
+            .clip:hover { background: rgba(var(--rgb-primary-text-color), 0.12); transform: translateY(-2px); }
+            .clip.cur { background: var(--primary-text-color); color: var(--primary-background-color); }
+            .clip.cur .d, .clip.cur .c { color: var(--primary-background-color); opacity: .7; }
+            .clip .lead { grid-area: lead; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 0;
+                          margin-bottom: 8px; background: rgba(var(--rgb-primary-text-color), 0.08); }
+            .clip .lead .mini { width: 22px; height: 22px; font-size: 10px; right: 6px; bottom: 6px; }
+            .clip .t { grid-area: t; padding-left: 10px; font-weight: 700; font-size: .92em; }
+            .clip .d { grid-area: d; font-size: .8em; }
+            .clip .c { grid-area: c; padding-right: 10px; }
+            .msg { grid-column: 1 / -1; }
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: DEF234567
+        title: Back door
+        max_height: 58vh
+        card_mod: *gallery
+  - type: grid
+    cards:
+      - type: custom:ezviz-recordings-card
+        serial: GHI345678
+        title: Garage
+        max_height: 58vh
+        card_mod: *gallery
