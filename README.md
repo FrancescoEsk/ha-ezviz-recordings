@@ -112,6 +112,10 @@ returns a per-camera summary.
 
 ## How it works
 
+Code layout: `playback.py` (EZVIZ cloud protocol), `records.py` (cached record lists),
+`media.py` (ffmpeg), `clip.py` (clip ids and file names), `recordings.py` (download and
+retention), `views.py` / `websocket.py` / `media_source.py` (what the frontend talks to).
+
 1. The list of clips of a day comes from the camera's storage (`search_records_v2`), cached in
    `.storage/ezviz_recordings.records`.
 2. A clip is requested from the EZVIZ VTM cloud relay as a *playback* stream for its exact
