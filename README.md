@@ -59,6 +59,7 @@ ezviz_recordings:
   auto_hours: [3, 6, 9, 12, 15, 18, 21]  # when (plus a last pass at 23:50)
   min_battery: 20                        # skip cameras below this battery %
   media_days: 30                         # days listed per camera in the Media panel
+  language: en                           # Media panel labels (en / it), default = HA system language
 ```
 
 | Option | Default | Notes |
@@ -70,6 +71,7 @@ ezviz_recordings:
 | `auto_hours` | `[3,6,…,21]` | every download wakes the camera for ~10 s per clip |
 | `min_battery` | `20` | |
 | `media_days` | `30` | |
+| `language` | HA system language | the cards follow each user's language; the Media panel can only follow this setting |
 
 ## Cards
 

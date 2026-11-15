@@ -11,6 +11,7 @@ CONF_AUTO_DOWNLOAD = "auto_download"
 CONF_AUTO_HOURS = "auto_hours"
 CONF_MIN_BATTERY = "min_battery"
 CONF_MEDIA_DAYS = "media_days"
+CONF_LANGUAGE = "language"  # Media panel labels; default = HA system language
 
 DEFAULT_STORAGE_DIR = "/media/ezviz_recordings"
 DEFAULT_STORAGE_LIMIT_GB = 20  # above this the oldest days (clips + thumbnails) are deleted

@@ -47,6 +47,7 @@ from .const import (
     COMPLETE_MARGIN_MIN,
     CONF_AUTO_DOWNLOAD,
     CONF_AUTO_HOURS,
+    CONF_LANGUAGE,
     CONF_MEDIA_DAYS,
     CONF_MIN_BATTERY,
     CONF_REQUIRE_MOUNT,
@@ -92,6 +93,7 @@ CONFIG_SCHEMA = vol.Schema(
                     vol.Optional(CONF_MEDIA_DAYS, default=DEFAULT_MEDIA_DAYS): vol.All(
                         vol.Coerce(int), vol.Range(min=1, max=3650)
                     ),
+                    vol.Optional(CONF_LANGUAGE): cv.string,
                 }
             ),
         )
@@ -116,6 +118,7 @@ class Recordings:
         self.require_mount = conf.get(CONF_REQUIRE_MOUNT)
         self.min_battery = conf[CONF_MIN_BATTERY]
         self.media_days = conf[CONF_MEDIA_DAYS]
+        self.language = conf.get(CONF_LANGUAGE)
         self._store: Store = Store(hass, 1, f"{DOMAIN}.records")
         self._db: dict[str, dict[str, dict]] = {}
         self._locks: dict[str, asyncio.Lock] = {}
@@ -563,7 +566,7 @@ class ThumbView(HomeAssistantView):
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     conf = config.get(DOMAIN) or CONFIG_SCHEMA({DOMAIN: {}})[DOMAIN]
-    problem = check_library()
+    problem = await hass.async_add_executor_job(check_library)  # reads package metadata
     if problem:
         _LOGGER.error("EZVIZ Recordings disabled: %s", problem)
         return False

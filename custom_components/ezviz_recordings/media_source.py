@@ -47,7 +47,8 @@ class EzvizRecordingsSource(MediaSource):
         self.name = self._t("title")
 
     def _t(self, key: str):
-        lang = (self.hass.config.language or "en").split("-")[0]
+        rec = self.hass.data.get(DOMAIN)
+        lang = ((rec and rec.language) or self.hass.config.language or "en").split("-")[0].lower()
         return TEXT.get(lang, TEXT["en"])[key]
 
     @property
