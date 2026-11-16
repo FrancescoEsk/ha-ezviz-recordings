@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from typing import Any
 
 import voluptuous as vol
@@ -11,7 +12,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
 from .clip import ClipRef, check_day
-from .const import DOMAIN
+from .const import DOMAIN, STILL_RECORDING_MIN
 from .recordings import Recordings
 
 
@@ -65,15 +66,21 @@ async def ws_clips(hass: HomeAssistant, connection: Any, msg: dict) -> None:
             stale = not fresh  # answer at once; the card asks for an update next
         else:
             recs = await rec.records(serial, day, full=msg["refresh"])
+            # the camera is awake now: fetch the clips of this day it still has to give us
+            rec.request_camera_sync(serial, day)
         clips_saved = await hass.async_add_executor_job(rec.saved_keys, serial, day)
         thumbs_saved = await hass.async_add_executor_job(rec.saved_keys, serial, day, "jpg")
     except HomeAssistantError as err:
         connection.send_error(msg["id"], "ezviz_error", str(err))
         return
     clips = []
+    missing = 0  # finished clips not saved yet (what a download run would fetch)
+    cutoff = datetime.now() - timedelta(minutes=STILL_RECORDING_MIN)
     for begin, end in reversed(recs):  # newest first
         ref = ClipRef.of(serial, begin, end)
         saved = ref.key in clips_saved
+        if not saved and end <= cutoff:
+            missing += 1
         has_thumb = saved or ref.key in thumbs_saved  # a saved clip gets its thumb on request
         clips.append(
             {
@@ -86,7 +93,8 @@ async def ws_clips(hass: HomeAssistant, connection: Any, msg: dict) -> None:
         )
     connection.send_result(
         msg["id"],
-        {"serial": serial, "day": day, "clips": clips, "stale": stale, "running": rec.auto_running},
+        {"serial": serial, "day": day, "clips": clips, "stale": stale, "running": rec.downloading(serial, day),
+         "missing": missing},
     )
 
 

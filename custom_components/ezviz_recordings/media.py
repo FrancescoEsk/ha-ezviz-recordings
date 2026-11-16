@@ -11,7 +11,7 @@ from homeassistant.components.ffmpeg import get_ffmpeg_manager
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import THUMB_WIDTH
+from .const import THUMB_QUALITY, THUMB_WIDTH
 
 DURATION_RE = re.compile(r"Duration: (\d+):(\d+):(\d+(?:\.\d+)?)")
 
@@ -23,6 +23,25 @@ def part_file(target: Path) -> Path:
 
 def nonempty(path: Path) -> bool:
     return path.exists() and path.stat().st_size > 0
+
+
+def jpeg_width(path: Path) -> int | None:
+    """Width of a JPEG from its SOF header, None if unreadable (blocking)."""
+    try:
+        with path.open("rb") as file:
+            if file.read(2) != b"\xff\xd8":
+                return None
+            while True:
+                marker = file.read(2)
+                if len(marker) < 2 or marker[0] != 0xFF:
+                    return None
+                size = int.from_bytes(file.read(2), "big")
+                if marker[1] in (0xC0, 0xC1, 0xC2):  # baseline / extended / progressive frame
+                    header = file.read(5)
+                    return int.from_bytes(header[3:5], "big")
+                file.seek(size - 2, os.SEEK_CUR)
+    except OSError:
+        return None
 
 
 async def _ffmpeg(
@@ -77,5 +96,5 @@ async def thumbnail(hass: HomeAssistant, clip: Path, at: float, target: Path) ->
     await _write(
         hass, target,
         "-ss", f"{max(0.0, at):.1f}", "-i", str(clip), "-frames:v", "1",
-        "-vf", f"scale={THUMB_WIDTH}:-2", "-q:v", "6", "-f", "image2",
+        "-vf", f"scale={THUMB_WIDTH}:-2", "-q:v", str(THUMB_QUALITY), "-f", "image2",
     )

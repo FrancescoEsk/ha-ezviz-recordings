@@ -34,6 +34,7 @@ from .const import (
     STILL_RECORDING_MIN,
     SYNC_MIN_INTERVAL,
     THUMB_URL,
+    THUMB_WIDTH,
 )
 from .playback import PlaybackError, download_ps, list_records
 from .records import RecordCache, Span, day_bounds, merge
@@ -57,6 +58,8 @@ class Recordings:
         self._auto_running = False
         self._last_sync = -SYNC_MIN_INTERVAL
         self._retry_unsub = None
+        self._wake_last: dict[tuple[str, str], float] = {}
+        self._wake_running: set[tuple[str, str]] = set()
 
     async def async_load(self) -> None:
         await self.cache.async_load()
@@ -209,6 +212,41 @@ class Recordings:
         await media.thumbnail(self.hass, clip, length / 2, thumb)
         return thumb
 
+    def _small_thumbs(self) -> list[ClipRef]:
+        """Clips whose thumbnail is smaller than THUMB_WIDTH and whose MP4 is still saved,
+        newest days first (blocking)."""
+        refs: list[ClipRef] = []
+        if not self.root.is_dir():
+            return refs
+        for jpg in sorted(self.root.glob("*/*/*.jpg"), reverse=True):
+            if ".part" in jpg.name or not jpg.with_suffix(".mp4").exists():
+                continue
+            width = media.jpeg_width(jpg)
+            if width is None or width >= THUMB_WIDTH:
+                continue
+            try:
+                refs.append(ClipRef.parse(jpg.parent.parent.name, jpg.parent.name, jpg.stem))
+            except HomeAssistantError:
+                continue
+        return refs
+
+    async def upgrade_thumbs(self) -> None:
+        """Remake old, smaller thumbnails from the saved MP4s (no camera involved)."""
+        refs = await self.hass.async_add_executor_job(self._small_thumbs)
+        if not refs:
+            return
+        _LOGGER.info("Remaking %s thumbnails at %s px", len(refs), THUMB_WIDTH)
+        done = 0
+        for ref in refs:
+            jpg = ref.file(self.root, "jpg")
+            try:
+                await self.hass.async_add_executor_job(jpg.unlink)
+                await self.ensure_thumb(ref)
+                done += 1
+            except (OSError, HomeAssistantError) as err:
+                _LOGGER.debug("Thumbnail of %s not remade: %s", ref, err)
+        _LOGGER.info("Remade %s of %s thumbnails", done, len(refs))
+
     def _make_dir(self, folder: Path) -> None:
         """Create a clip folder; never fill the HA disk if the required share is missing."""
         if self.require_mount and not os.path.ismount(self.require_mount):
@@ -264,6 +302,33 @@ class Recordings:
             return False
         self._last_sync = now
         self.hass.async_create_background_task(self.download_today(), f"{DOMAIN}_sync")
+        return True
+
+    def downloading(self, serial: str, day: str) -> bool:
+        """True while clips of this camera and day may still be arriving."""
+        return self._auto_running or (serial, day) in self._wake_running
+
+    def request_camera_sync(self, serial: str, day: str) -> bool:
+        """The camera was just woken to read its list: download that day's missing clips
+        while it is awake, at most every SYNC_MIN_INTERVAL per camera and day."""
+        key = (serial, day)
+        now = time.monotonic()
+        if key in self._wake_running or now - self._wake_last.get(key, -SYNC_MIN_INTERVAL) < SYNC_MIN_INTERVAL:
+            return False
+        self._wake_last = {k: t for k, t in self._wake_last.items() if now - t < SYNC_MIN_INTERVAL}
+        self._wake_last[key] = now
+        self._wake_running.add(key)
+
+        async def _run() -> None:
+            summary: dict[str, dict[str, int]] = {}
+            name = self.cameras().get(serial, serial)
+            try:
+                await self._download_camera(serial, name, day, summary)
+                _LOGGER.info("Download of %s on wake-up finished: %s", day, summary)
+            finally:
+                self._wake_running.discard(key)
+
+        self.hass.async_create_background_task(_run(), f"{DOMAIN}_wake_{serial}_{day}")
         return True
 
     async def download_today(self, retry: bool = True) -> dict[str, dict[str, int]]:

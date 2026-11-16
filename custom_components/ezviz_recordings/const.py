@@ -26,7 +26,8 @@ SIGNED_URL_HOURS = 6
 CARD_FILE = "ezviz-recordings-card.js"
 CARD_URL = "/ezviz_recordings_static/ezviz-recordings-card.js"
 
-THUMB_WIDTH = 192  # px; shown at 64x36 in the card (sharp on hi-dpi screens)
+THUMB_WIDTH = 640  # px; sharp on phone screens in the grid and timeline layouts (~30 KB each)
+THUMB_QUALITY = 5  # ffmpeg -q:v for the JPEG (2 = best, 31 = worst)
 MIN_COMPLETE_RATIO = 0.6  # a saved clip shorter than this share of its record is truncated
 STILL_RECORDING_MIN = 2  # a clip that ended less than this ago may still be growing
 

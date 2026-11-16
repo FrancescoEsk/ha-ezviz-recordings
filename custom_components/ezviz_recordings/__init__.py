@@ -109,6 +109,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             )
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _check_source)
+
+    async def _upgrade_thumbs(_event: Event) -> None:
+        # thumbnails made by older versions are smaller: remake them from the saved clips
+        hass.async_create_background_task(rec.upgrade_thumbs(), f"{DOMAIN}_upgrade_thumbs")
+
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _upgrade_thumbs)
     return True
 
 

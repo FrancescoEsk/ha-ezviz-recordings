@@ -9,9 +9,12 @@ clips are fetched through the EZVIZ cloud relay, the same way the EZVIZ app does
 - 📅 **Shared day bar** – one day selector for several cards (great on a wall tablet).
 - 📁 **Media panel** – *Media → Camera recordings → camera → day → clip*.
 - ⬇️ **Automatic download** of today's clips every few hours and when you open the card,
-  saved as MP4 + a small JPEG thumbnail, kept until a size limit you choose.
+  saved as MP4 + a small JPEG thumbnail, kept until a size limit you choose. Whenever the
+  card wakes a camera to read a day's list, that day's missing clips are downloaded too,
+  while the camera is awake.
 - 🔋 Battery friendly: skips cameras with low battery, opening the card triggers at most
-  one download every 10 minutes, record lists are cached (past days are never asked again).
+  one download every 10 minutes (per camera and day for the wake-up downloads), record
+  lists are cached (past days are never asked again).
 
 > ⚠️ **Unofficial, community project.** Not affiliated with EZVIZ. It relies on an
 > undocumented cloud protocol that EZVIZ may change at any time.
@@ -87,6 +90,10 @@ max_height: 480px        # optional, height of the clip list
 autoplay_next: true      # optional, play the next (older) clip when one ends
 sync: cameras            # optional, follow an ezviz-recordings-datebar with the same sync
 hide_bar: true           # optional, hide this card's own day selector (use with sync)
+hide_refresh: true       # optional, hide this card's own ⟳ (use the day bar's one)
+short_time: true         # optional, clip time as HH:MM instead of HH:MM:SS
+layout: timeline         # optional, clips grouped in piles on a time axis; tapping a pile opens
+                         # its clips in a grid (back with ‹ or a swipe to the right). Default: list
 ```
 
 ### Shared day bar
@@ -95,6 +102,8 @@ hide_bar: true           # optional, hide this card's own day selector (use with
 type: custom:ezviz-recordings-datebar
 sync: cameras            # required, same value as the cards it drives
 reset_after: 300         # optional, back to today after N s without touches (0 = never)
+show_refresh: true       # optional (default true), ⟳ that refreshes every card of the group;
+                         # while HA downloads, the clips still to fetch are shown next to it (↓ 3)
 ```
 
 Ready-made dashboards in [`examples/`](examples):
